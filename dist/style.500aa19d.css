@@ -1,0 +1,14 @@
+body {
+  background: lightblue;
+}
+body h1 {
+  color: blue;
+}
+
+input:-ms-input-placeholder {
+  color: orange;
+}
+
+input::placeholder {
+  color: orange;
+}
