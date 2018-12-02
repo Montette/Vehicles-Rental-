@@ -223,6 +223,7 @@ class FleetDataService {
     this.cars = [];
     this.drones = [];
     this.errors = [];
+    this.desc = false;
   }
 
   loadData(data) {
@@ -344,30 +345,35 @@ class FleetDataService {
     return isValid;
   }
 
-  getCarByProp(prop, value) {
-    return this.cars.filter(car => car[prop] === value);
-  }
+  getVehicleByProp(type, prop, value) {
+    return this[type].filter(item => item[prop] === value);
+  } // getCarByProp(prop, value) {
+  //     return this.cars.filter(car => car[prop] === value);
+  // }
+  // getDroneByProp(prop, value) {
+  //     return this.drones.filter(drone => drone[prop] === value);
+  // }
 
-  getDroneByProp(prop, value) {
-    return this.drones.filter(drone => drone[prop] === value);
-  }
 
-  filterVehicles(value) {
-    let searching = [];
-    this.cars.forEach(item => {
-      Object.values(item).forEach(ob => {
-        console.log(ob);
-        console.log(value);
-        if (ob.toLowerCase().includes(value.toLowerCase())) searching.push(item);
-      });
+  filterVehicles(key, value) {
+    let vehicles = key === 'cars' ? 'filteredCars' : 'filteredDrones';
+    this[vehicles] = this[key].filter(el => {
+      return Object.keys(el).some(k => el[k].toLowerCase().includes(value.toLowerCase()));
     });
-    return searching; // return this.cars.map(car => {
-    //     Object.values(car).filter(val => {
-    //         console.log(val);
-    //         console.log(value);
-    //         if( val.includes(value)) return car
-    //     })
-    // })
+    return this[vehicles];
+  }
+
+  sortVehicles(key, value) {
+    // let vehiclesToSort = this.filterVehicles(key, value);
+    var mod = this.desc ? -1 : 1;
+    let vehicles = key === 'cars' ? 'filteredCars' : 'filteredDrones';
+    let vehiclesToSort = this[vehicles] ? this[vehicles] : this[key];
+    return vehiclesToSort.sort((x, y) => {
+      this.desc = !this.desc;
+      if (x[value] < y[value]) return -1 * mod;
+      if (x[value] > y[value]) return 1 * mod;
+      return 0;
+    });
   }
 
 }
@@ -386,13 +392,7 @@ var _fleetDataService = require("./services/fleet-data-service.js");
 
 let car = new _car.Car();
 let drone = new _drone.Drone();
-console.log('dupa');
-let dataService = new _fleetDataService.FleetDataService(); // getData().then(data => dataService.loadData(data));
-// dataService.loadData("data")
-// console.log(dataService.cars); //empty array
-// console.log(dataService.getCarByLicense())
-// Options: --async-functions 
-// async function vehiclesData() {
+let dataService = new _fleetDataService.FleetDataService(); // async function vehiclesData() {
 //     getData().then(data => dataService.loadData(data));
 //     const request = getData();
 //     const data = await request;
@@ -430,48 +430,63 @@ let dataService = new _fleetDataService.FleetDataService(); // getData().then(da
 // };
 // vehiclesData();
 
-async function vehiclesData() {
-  (0, _fleetData.getData)().then(data => dataService.loadData(data));
-  const request = (0, _fleetData.getData)();
-  const data = await request;
-  console.log(data);
-  const myCar = dataService.getCarByProp('license', "AT2000");
+(0, _fleetData.getData)().then(data => dataService.loadData(data)).then(() => vehiclesData());
+
+function vehiclesData() {
+  const myCar = dataService.getVehicleByProp('cars', 'license', "AT2000");
   console.log(myCar);
-  console.log(dataService.getCarByProp('make', 'Uber'));
-  const list = document.createElement('ul');
-  document.querySelector('.container').appendChild(list);
-
-  function insertCars(cars) {
-    list.innerHTML = '';
-    cars.forEach(car => {
-      const li = document.createElement('li');
-      li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
-      list.appendChild(li);
-    });
-  }
-
-  ;
+  console.log(dataService.getVehicleByProp('drones', 'base', 'New York'));
   insertCars(dataService.cars);
   const input = document.querySelector('input');
   input.addEventListener('keyup', event => {
-    let value = event.currentTarget.value;
-    console.log(value);
-    let res = dataService.filterVehicles(value); // console.log(res);
-    // insertCars(res);
+    filterItems(event);
+  });
+  const sortButton = document.querySelector('.sort');
+  sortButton.addEventListener('click', sortVehicles);
+}
 
-    const items = document.querySelectorAll('li');
-    items.forEach(item => {
-      if (item.textContent.toLowerCase().includes(value)) {
-        item.style.display = "";
-      } else {
-        item.style.display = 'none';
-      }
-    });
+;
+
+function sortVehicles() {
+  let sortedVehicles = dataService.sortVehicles('cars', 'model');
+  insertCars(sortedVehicles);
+}
+
+function filterItems(event) {
+  let value = event.currentTarget.value;
+  console.log(value);
+  let res = dataService.filterVehicles('cars', value);
+  console.log(res);
+  insertCars(res); // const items = document.querySelectorAll('li');
+  // items.forEach(item => {
+  //     if (item.textContent.toLowerCase().includes(value)) {
+  //         item.style.display = ""
+  //     } else {
+  //         item.style.display = 'none';
+  //     }
+  // })
+}
+
+function insertCars(cars) {
+  let list;
+
+  if (!document.querySelector('ul.car-list')) {
+    list = document.createElement('ul');
+    list.classList.add('car-list');
+    document.querySelector('.container').appendChild(list);
+  } else {
+    list = document.querySelector('ul.car-list');
+  }
+
+  list.innerHTML = '';
+  cars.forEach(car => {
+    const li = document.createElement('li');
+    li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
+    list.appendChild(li);
   });
 }
 
 ;
-vehiclesData();
 },{"./classes/car.js":"js/classes/car.js","./classes/drone.js":"js/classes/drone.js","./fleet-data.js":"js/fleet-data.js","./services/fleet-data-service.js":"js/services/fleet-data-service.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -499,7 +514,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60544" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52245" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

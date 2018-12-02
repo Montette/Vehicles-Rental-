@@ -14,6 +14,7 @@ export class FleetDataService {
         this.cars = [];
         this.drones = [];
         this.errors = [];
+        this.desc = false;
     }
 
     loadData(data) {
@@ -128,32 +129,39 @@ export class FleetDataService {
         return isValid;
     }
 
-    getCarByProp(prop, value) {
-        return this.cars.filter(car => car[prop] === value);
+    getVehicleByProp(type, prop, value) {
+        return this[type].filter(item => item[prop] === value)
     }
 
-    getDroneByProp(prop, value) {
-        return this.drones.filter(drone => drone[prop] === value);
-    }
+    // getCarByProp(prop, value) {
+    //     return this.cars.filter(car => car[prop] === value);
+    // }
 
-    filterVehicles(value){
-        let searching = [];
-        this.cars.forEach(item => {
-            Object.values(item).forEach(ob => {
-                console.log(ob);
-                console.log(value);
-                if(ob.toLowerCase().includes(value.toLowerCase())) searching.push(item);
-            })
-        });
-        return searching;
+    // getDroneByProp(prop, value) {
+    //     return this.drones.filter(drone => drone[prop] === value);
+    // }
 
-        // return this.cars.map(car => {
-        //     Object.values(car).filter(val => {
-        //         console.log(val);
-        //         console.log(value);
-        //         if( val.includes(value)) return car
-        //     })
-        // })
+    filterVehicles(key, value) {
+        let vehicles = key === 'cars' ? 'filteredCars' : 'filteredDrones';
+        this[vehicles] = this[key].filter(el => {
+            return Object.keys(el).some(k => el[k].toLowerCase().includes(value.toLowerCase()))
 
+            });
+            return this[vehicles];
+        } 
+
+    sortVehicles(key, value) {
+        // let vehiclesToSort = this.filterVehicles(key, value);
+       
+        var mod = this.desc ? -1 : 1;
+        let vehicles = key === 'cars' ? 'filteredCars' : 'filteredDrones';
+        let vehiclesToSort = this[vehicles] ? this[vehicles] : this[key];
+        return vehiclesToSort.sort((x, y) => {
+            this.desc = !this.desc;
+            if(x[value] < y[value]) return -1 * mod;
+            if(x[value] > y[value]) return 1 * mod;
+            
+            return 0;
+        })
     }
 }
