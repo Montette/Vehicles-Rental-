@@ -344,8 +344,30 @@ class FleetDataService {
     return isValid;
   }
 
-  getCarByLicense(license) {
-    return this.cars.filter(car => car.license === license);
+  getCarByProp(prop, value) {
+    return this.cars.filter(car => car[prop] === value);
+  }
+
+  getDroneByProp(prop, value) {
+    return this.drones.filter(drone => drone[prop] === value);
+  }
+
+  filterVehicles(value) {
+    let searching = [];
+    this.cars.forEach(item => {
+      Object.values(item).forEach(ob => {
+        console.log(ob);
+        console.log(value);
+        if (ob.toLowerCase().includes(value.toLowerCase())) searching.push(item);
+      });
+    });
+    return searching; // return this.cars.map(car => {
+    //     Object.values(car).filter(val => {
+    //         console.log(val);
+    //         console.log(value);
+    //         if( val.includes(value)) return car
+    //     })
+    // })
   }
 
 }
@@ -370,15 +392,82 @@ let dataService = new _fleetDataService.FleetDataService(); // getData().then(da
 // console.log(dataService.cars); //empty array
 // console.log(dataService.getCarByLicense())
 // Options: --async-functions 
+// async function vehiclesData() {
+//     getData().then(data => dataService.loadData(data));
+//     const request = getData();
+//     const data = await request;
+//     console.log(data);
+//     const myCar = dataService.getCarByProp('license', "AT2000");
+//     console.log(myCar);
+//     console.log(dataService.getCarByProp('make', 'Uber'));
+//     const list = document.createElement('ul');
+//     document.querySelector('.container').appendChild(list);
+//     function insertCars(cars) {
+//         list.innerHTML = '';
+//         cars.forEach(car => {
+//             const li = document.createElement('li');
+//             li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
+//             list.appendChild(li);
+//         })
+//     };
+//     insertCars(dataService.cars);
+//     const input = document.querySelector('input');
+//     input.addEventListener('keyup', (event) => {
+//         let value = event.currentTarget.value;
+//         console.log(value);
+//         let res = dataService.filterVehicles(value);
+//         // console.log(res);
+//         // insertCars(res);
+//         const items = document.querySelectorAll('li');
+//         items.forEach(item => {
+//             if(item.textContent.toLowerCase().includes(value)) {
+//                 item.style.display = ""
+//             } else {
+//                 item.style.display = 'none';
+//             }
+//         })
+//     })
+// };
+// vehiclesData();
 
 async function vehiclesData() {
   (0, _fleetData.getData)().then(data => dataService.loadData(data));
   const request = (0, _fleetData.getData)();
   const data = await request;
   console.log(data);
-  console.log(dataService.cars);
-  const myCar = dataService.getCarByLicense("AT2000");
+  const myCar = dataService.getCarByProp('license', "AT2000");
   console.log(myCar);
+  console.log(dataService.getCarByProp('make', 'Uber'));
+  const list = document.createElement('ul');
+  document.querySelector('.container').appendChild(list);
+
+  function insertCars(cars) {
+    list.innerHTML = '';
+    cars.forEach(car => {
+      const li = document.createElement('li');
+      li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
+      list.appendChild(li);
+    });
+  }
+
+  ;
+  insertCars(dataService.cars);
+  const input = document.querySelector('input');
+  input.addEventListener('keyup', event => {
+    let value = event.currentTarget.value;
+    console.log(value);
+    let res = dataService.filterVehicles(value); // console.log(res);
+    // insertCars(res);
+
+    const items = document.querySelectorAll('li');
+    items.forEach(item => {
+      if (item.textContent.toLowerCase().includes(value)) {
+        item.style.display = "";
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
 }
 
 ;

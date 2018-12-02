@@ -128,7 +128,32 @@ export class FleetDataService {
         return isValid;
     }
 
-    getCarByLicense(license) {
-        return this.cars.filter(car => car.license === license);
+    getCarByProp(prop, value) {
+        return this.cars.filter(car => car[prop] === value);
+    }
+
+    getDroneByProp(prop, value) {
+        return this.drones.filter(drone => drone[prop] === value);
+    }
+
+    filterVehicles(value){
+        let searching = [];
+        this.cars.forEach(item => {
+            Object.values(item).forEach(ob => {
+                console.log(ob);
+                console.log(value);
+                if(ob.toLowerCase().includes(value.toLowerCase())) searching.push(item);
+            })
+        });
+        return searching;
+
+        // return this.cars.map(car => {
+        //     Object.values(car).filter(val => {
+        //         console.log(val);
+        //         console.log(value);
+        //         if( val.includes(value)) return car
+        //     })
+        // })
+
     }
 }
