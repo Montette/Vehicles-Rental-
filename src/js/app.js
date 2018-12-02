@@ -126,3 +126,65 @@ async function vehiclesData() {
 };
 
 vehiclesData();
+
+
+
+
+
+getData().then(data => dataService.loadData(data)).then(data => vehiclesData(data));
+
+
+
+
+
+
+
+
+
+// function vehiclesData(data) {
+
+
+// console.log(data);
+
+
+// const myCar = dataService.getCarByProp('license', "AT2000");
+// console.log(myCar);
+// console.log(dataService.getCarByProp('make', 'Uber'));
+
+// const list = document.createElement('ul');
+// document.querySelector('.container').appendChild(list);
+
+// function insertCars(cars) {
+    
+//     list.innerHTML = '';
+//     cars.forEach(car => {
+//         const li = document.createElement('li');
+//         li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
+//         list.appendChild(li);
+//     })
+    
+// };
+
+// insertCars(dataService.cars);
+
+// const input = document.querySelector('input');
+
+// input.addEventListener('keyup', (event) => {
+//     let value = event.currentTarget.value;
+//     console.log(value);
+//     let res = dataService.filterVehicles(value);
+//     // console.log(res);
+//     // insertCars(res);
+//     const items = document.querySelectorAll('li');
+//     items.forEach(item => {
+//         if(item.textContent.toLowerCase().includes(value)) {
+//             item.style.display = ""
+//         } else {
+//             item.style.display = 'none';
+//         }
+//     })
+
+// })
+
+
+// }
