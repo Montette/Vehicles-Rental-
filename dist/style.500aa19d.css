@@ -12,3 +12,7 @@ input:-ms-input-placeholder {
 input::placeholder {
   color: orange;
 }
+
+#map {
+  height: 600px;
+}

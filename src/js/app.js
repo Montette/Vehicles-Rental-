@@ -10,71 +10,45 @@ import {
 import {
     FleetDataService
 } from './services/fleet-data-service.js';
+
+import { Button } from './UI/button.js';
+
+import { Image } from './UI/image.js';
+
+import { NavBar } from './UI/navBar.js';
+
+import { Table } from './UI/table.js';
+
+
 let car = new Car();
 let drone = new Drone();
 
-
 let dataService = new FleetDataService();
-
-
-// async function vehiclesData() {
-//     getData().then(data => dataService.loadData(data));
-//     const request = getData();
-//     const data = await request;
-//     console.log(data);
-
-
-//     const myCar = dataService.getCarByProp('license', "AT2000");
-//     console.log(myCar);
-//     console.log(dataService.getCarByProp('make', 'Uber'));
-
-//     const list = document.createElement('ul');
-//     document.querySelector('.container').appendChild(list);
-
-//     function insertCars(cars) {
-
-//         list.innerHTML = '';
-//         cars.forEach(car => {
-//             const li = document.createElement('li');
-//             li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
-//             list.appendChild(li);
-//         })
-
-//     };
-
-//     insertCars(dataService.cars);
-
-//     const input = document.querySelector('input');
-
-//     input.addEventListener('keyup', (event) => {
-//         let value = event.currentTarget.value;
-//         console.log(value);
-//         let res = dataService.filterVehicles(value);
-//         // console.log(res);
-//         // insertCars(res);
-//         const items = document.querySelectorAll('li');
-//         items.forEach(item => {
-//             if(item.textContent.toLowerCase().includes(value)) {
-//                 item.style.display = ""
-//             } else {
-//                 item.style.display = 'none';
-//             }
-//         })
-
-//     })
-
-
-
-// };
-
-// vehiclesData();
-
-
-
-
-
 getData().then(data => dataService.loadData(data)).then(() => vehiclesData());
 
+
+
+const bar = new NavBar('Cars & Drones');
+bar.addLinks('www.google.com', 'google');
+bar.addLinks('www.wp.pl', 'wp site');
+bar.appendToElement('body');
+
+
+const button = new Button('click me');
+button.appendToElement('.page-content');
+
+const image = new Image('drone.jpg','');
+image.appendToElement('.page-content');
+
+
+
+
+function createTable(data, title) {
+    const table = new Table(title, data);
+    // table.insertData(data);
+    table.appendToElement('.page-content');
+    
+}
 
 function vehiclesData() {
 
@@ -82,16 +56,18 @@ function vehiclesData() {
     console.log(myCar);
     console.log(dataService.getVehicleByProp('drones','base', 'New York'));
  
-    insertCars(dataService.cars);
+    // insertCars(dataService.cars);
 
-    const input = document.querySelector('input');
-    input.addEventListener('keyup', (event) => {
-       filterItems(event);
-    });
+    // const input = document.querySelector('input');
+    // input.addEventListener('keyup', (event) => {
+    //    filterItems(event);
+    // });
 
-    const sortButton = document.querySelector('.sort');
-    sortButton.addEventListener('click', sortVehicles)
+    // const sortButton = document.querySelector('.sort');
+    // sortButton.addEventListener('click', sortVehicles)
 
+   createTable(dataService.cars, 'Cars table');
+   createTable(dataService.drones, 'Drones table');
 
 };
 
@@ -136,3 +112,4 @@ function insertCars(cars) {
     })
 
 };
+
