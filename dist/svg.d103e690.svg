@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" >
+  <symbol viewBox="0 0 48 48" id="skull" width="32" height="32"> 
+    <title>skull</title>
+    <path d="M150 0 L75 200 L225 200 Z" fill="none" stroke="#444" stroke-width="2"/>
+  </symbol>
+  <symbol viewBox="0 0 32 32" id="check" >
+    <title>check</title>
+    <path d="M 100 350 q 150 -300 300 0" fill="none" stroke="#444" stroke-width="2"/>
+  </symbol>
+</svg>

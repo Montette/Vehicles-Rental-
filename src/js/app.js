@@ -19,6 +19,8 @@ import { NavBar } from './UI/navBar.js';
 
 import { Table } from './UI/table.js';
 
+import { Map } from './UI/map.js';
+
 
 let car = new Car();
 let drone = new Drone();
@@ -42,13 +44,17 @@ image.appendToElement('.page-content');
 
 
 
-
 function createTable(data, title) {
     const table = new Table(title, data);
     // table.insertData(data);
     table.appendToElement('.page-content');
     
 }
+
+function initMap() {
+
+}
+
 
 function vehiclesData() {
 
@@ -69,6 +75,8 @@ function vehiclesData() {
    createTable(dataService.cars, 'Cars table');
    createTable(dataService.drones, 'Drones table');
 
+   const map = new Map({lat: -34.397, lng: 150.644}, dataService.cars);
+ 
 };
 
 

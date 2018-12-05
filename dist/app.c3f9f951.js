@@ -623,6 +623,52 @@ class Table extends _baseElement.BaseElement {
 }
 
 exports.Table = Table;
+},{"./base-element":"js/UI/base-element.js"}],"js/UI/map.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Map = void 0;
+
+var _baseElement = require("./base-element");
+
+class Map extends _baseElement.BaseElement {
+  constructor(centerOfMap, data) {
+    super();
+    this.centerOfMap = centerOfMap;
+    this.data = data;
+  }
+
+  createElement() {
+    super.createElement();
+    this.createMap();
+  }
+
+  createMap() {
+    const map = new google.maps.Map(document.getElementById('map'), {
+      center: this.centerOfMap,
+      zoom: 8
+    });
+
+    for (let vehicle of this.data) {
+      let [lat, long] = vehicle.latLong.split(' ');
+      let latLong = new google.maps.LatLng(lat, long);
+      const marker = new google.maps.Marker({
+        position: latLong,
+        map: map
+      });
+      marker.setMap(map);
+    }
+  }
+
+  getElementString() {
+    return `<div style="width:800px; height: 400px;" id="map"></div>`;
+  }
+
+}
+
+exports.Map = Map;
 },{"./base-element":"js/UI/base-element.js"}],"js/app.js":[function(require,module,exports) {
 "use strict";
 
@@ -641,6 +687,8 @@ var _image = require("./UI/image.js");
 var _navBar = require("./UI/navBar.js");
 
 var _table = require("./UI/table.js");
+
+var _map = require("./UI/map.js");
 
 let car = new _car.Car();
 let drone = new _drone.Drone();
@@ -661,6 +709,8 @@ function createTable(data, title) {
   table.appendToElement('.page-content');
 }
 
+function initMap() {}
+
 function vehiclesData() {
   const myCar = dataService.getVehicleByProp('cars', 'license', "AT2000");
   console.log(myCar);
@@ -674,6 +724,10 @@ function vehiclesData() {
 
   createTable(dataService.cars, 'Cars table');
   createTable(dataService.drones, 'Drones table');
+  const map = new _map.Map({
+    lat: -34.397,
+    lng: 150.644
+  }, dataService.cars);
 }
 
 ;
@@ -718,7 +772,7 @@ function insertCars(cars) {
 }
 
 ;
-},{"./classes/car.js":"js/classes/car.js","./classes/drone.js":"js/classes/drone.js","./fleet-data.js":"js/fleet-data.js","./services/fleet-data-service.js":"js/services/fleet-data-service.js","./UI/button.js":"js/UI/button.js","./UI/image.js":"js/UI/image.js","./UI/navBar.js":"js/UI/navBar.js","./UI/table.js":"js/UI/table.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./classes/car.js":"js/classes/car.js","./classes/drone.js":"js/classes/drone.js","./fleet-data.js":"js/fleet-data.js","./services/fleet-data-service.js":"js/services/fleet-data-service.js","./UI/button.js":"js/UI/button.js","./UI/image.js":"js/UI/image.js","./UI/navBar.js":"js/UI/navBar.js","./UI/table.js":"js/UI/table.js","./UI/map.js":"js/UI/map.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -745,7 +799,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49488" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54762" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
