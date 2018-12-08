@@ -51,11 +51,18 @@ function createTable(data, title) {
     
 }
 
+
 function initMap() {
-
-}
-
-
+   
+    // var uluru = {lat: -25.344, lng: 131.036};
+    // var map = new google.maps.Map(
+    //     document.getElementById('map'), {zoom: 4, center: uluru});
+    // var marker = new google.maps.Marker({position: uluru, map: map});
+    const center = {lat: 40.779999, lng: -73.965883};
+    const map = new Map(center, dataService.cars);
+    map.appendToElement('.page-content');
+    
+  }
 function vehiclesData() {
 
     const myCar = dataService.getVehicleByProp('cars','license', "AT2000");
@@ -75,7 +82,8 @@ function vehiclesData() {
    createTable(dataService.cars, 'Cars table');
    createTable(dataService.drones, 'Drones table');
 
-   const map = new Map({lat: -34.397, lng: 150.644}, dataService.cars);
+//    const map = new Map({lat: -34.397, lng: 150.644}, dataService.cars);
+    google.maps.event.addDomListener(window, 'load', initMap);
  
 };
 
@@ -120,4 +128,5 @@ function insertCars(cars) {
     })
 
 };
+
 

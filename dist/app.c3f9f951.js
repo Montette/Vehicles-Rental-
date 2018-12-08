@@ -640,23 +640,25 @@ class Map extends _baseElement.BaseElement {
     this.data = data;
   }
 
-  createElement() {
-    super.createElement();
+  appendToElement(el) {
+    super.appendToElement(el);
     this.createMap();
   }
 
   createMap() {
     const map = new google.maps.Map(document.getElementById('map'), {
       center: this.centerOfMap,
-      zoom: 8
+      zoom: 15
     });
 
     for (let vehicle of this.data) {
       let [lat, long] = vehicle.latLong.split(' ');
+      let title = `${vehicle.make}, ${vehicle.model}`;
       let latLong = new google.maps.LatLng(lat, long);
       const marker = new google.maps.Marker({
         position: latLong,
-        map: map
+        map: map,
+        title: title
       });
       marker.setMap(map);
     }
@@ -709,7 +711,18 @@ function createTable(data, title) {
   table.appendToElement('.page-content');
 }
 
-function initMap() {}
+function initMap() {
+  // var uluru = {lat: -25.344, lng: 131.036};
+  // var map = new google.maps.Map(
+  //     document.getElementById('map'), {zoom: 4, center: uluru});
+  // var marker = new google.maps.Marker({position: uluru, map: map});
+  const center = {
+    lat: 40.779999,
+    lng: -73.965883
+  };
+  const map = new _map.Map(center, dataService.cars);
+  map.appendToElement('.page-content');
+}
 
 function vehiclesData() {
   const myCar = dataService.getVehicleByProp('cars', 'license', "AT2000");
@@ -723,11 +736,9 @@ function vehiclesData() {
   // sortButton.addEventListener('click', sortVehicles)
 
   createTable(dataService.cars, 'Cars table');
-  createTable(dataService.drones, 'Drones table');
-  const map = new _map.Map({
-    lat: -34.397,
-    lng: 150.644
-  }, dataService.cars);
+  createTable(dataService.drones, 'Drones table'); //    const map = new Map({lat: -34.397, lng: 150.644}, dataService.cars);
+
+  google.maps.event.addDomListener(window, 'load', initMap);
 }
 
 ;
@@ -799,7 +810,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54762" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60405" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

@@ -6,24 +6,26 @@ export class Map extends BaseElement {
         this.centerOfMap = centerOfMap;
         this.data = data;
     }
-    createElement() {
-        super.createElement();
+    appendToElement(el) {
+        super.appendToElement(el);
         this.createMap();
     }
 
     createMap() {
         const map = new google.maps.Map(document.getElementById('map'), {
         center: this.centerOfMap,
-        zoom: 8
+        zoom: 15
         });
 
         for (let vehicle of this.data) {
             let [lat, long] = vehicle.latLong.split(' ');
+            let title = `${vehicle.make}, ${vehicle.model}`;
             let latLong = new google.maps.LatLng(lat, long);
 
             const marker = new google.maps.Marker({
                 position: latLong,
-                map: map
+                map: map,
+                title: title
             });
 
             marker.setMap(map);
