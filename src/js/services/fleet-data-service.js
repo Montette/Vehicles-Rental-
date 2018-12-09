@@ -16,8 +16,7 @@ export class FleetDataService {
         this.errors = [];
         this.desc = false;
     }
-
-    loadData(data) {
+    loadVehiclesData(data) {
         data.forEach(item => {
             switch (item.type) {
                 case 'drone':

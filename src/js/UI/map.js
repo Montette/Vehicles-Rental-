@@ -12,6 +12,7 @@ export class Map extends BaseElement {
     }
 
     createMap() {
+        console.log('create map in map');
         const map = new google.maps.Map(document.getElementById('map'), {
         center: this.centerOfMap,
         zoom: 15
@@ -27,10 +28,10 @@ export class Map extends BaseElement {
                 map: map,
                 title: title
             });
-
             marker.setMap(map);
         }
     }
+
 
     getElementString() {
         return `<div style="width:800px; height: 400px;" id="map"></div>`
