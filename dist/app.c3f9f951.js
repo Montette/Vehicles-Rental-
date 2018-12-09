@@ -104,7 +104,26 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"js/classes/vehicle.js":[function(require,module,exports) {
+})({"js/fleet-data.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getData = void 0;
+
+const getData = () => fetch('https://vehicles-989f1.firebaseio.com/vehicles.json').then(response => {
+  if (response.ok) {
+    return response.json();
+  } else {
+    throw new Error();
+  }
+}).catch(err => {
+  console.log(err);
+});
+
+exports.getData = getData;
+},{}],"js/classes/vehicle.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -167,26 +186,7 @@ class Drone extends _vehicle.Vehicle {
 }
 
 exports.Drone = Drone;
-},{"./vehicle.js":"js/classes/vehicle.js"}],"js/fleet-data.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getData = void 0;
-
-const getData = () => fetch('https://vehicles-989f1.firebaseio.com/vehicles.json').then(response => {
-  if (response.ok) {
-    return response.json();
-  } else {
-    throw new Error();
-  }
-}).catch(err => {
-  console.log(err);
-});
-
-exports.getData = getData;
-},{}],"js/services/data-error.js":[function(require,module,exports) {
+},{"./vehicle.js":"js/classes/vehicle.js"}],"js/services/data-error.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -226,7 +226,7 @@ class FleetDataService {
     this.desc = false;
   }
 
-  loadData(data) {
+  loadVehiclesData(data) {
     data.forEach(item => {
       switch (item.type) {
         case 'drone':
@@ -393,61 +393,168 @@ class BaseElement {
   }
 
   appendToElement(el) {
-    this.createElement(); // $(el).append(this.element);
-
-    const parent = document.querySelector(`${el}`);
-    parent.insertAdjacentHTML('beforeend', this.element);
+    this.createElement();
+    $(el).append(this.element);
   }
 
   createElement() {
-    let str = this.getElementString(); // this.element = $(str);
-
-    this.element = str;
+    let str = this.getElementString();
+    this.element = $(str);
   }
 
   getElementString() {
     throw 'Please override getElementString() in BaseElement';
-  } // enableJS() {
-  //     componentHandler.upgradeElement(this.element[0]);
-  // }
-
+  }
 
 }
 
 exports.BaseElement = BaseElement;
-},{}],"js/UI/button.js":[function(require,module,exports) {
+},{}],"js/UI/navBar.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Button = void 0;
+exports.NavBar = void 0;
 
 var _baseElement = require("./base-element");
 
-class Button extends _baseElement.BaseElement {
+class NavBar extends _baseElement.BaseElement {
   constructor(title) {
     super();
     this.title = title;
+    this.links = [];
+  }
+
+  addLinks(title, href) {
+    this.links.push({
+      title,
+      href
+    });
   }
 
   getElementString() {
+    const links = this.links.map(link => {
+      return `<a class="mdl-navigation__link">${link.title}</a>`;
+    });
+    console.log([...links]);
     return `
-        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
-        ${this.title}
-      </button>`;
+            <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+                <header class="mdl-layout__header">
+                    <div class="mdl-layout__header-row">
+                    <!-- Title -->
+                    <span class="mdl-layout-title">${this.title}</span>
+                    <!-- Add spacer, to align navigation to the right -->
+                    <div class="mdl-layout-spacer"></div>
+                    <!-- Navigation. We hide it in small screens. -->
+                    <nav class="mdl-navigation mdl-layout--large-screen-only">
+                        ${links.join(' ')}
+                    </nav>
+                    </div>
+                </header>
+                <div class="mdl-layout__drawer">
+                    <span class="mdl-layout-title">${this.title}</span>
+                    <nav class="mdl-navigation">
+                    ${[...links]}
+                    </nav>
+                </div>
+                <main class="mdl-layout__content">
+                    <div class="page-content"><!-- Your content goes here --></div>
+                </main>
+            </div>
+      `;
   }
 
 }
 
-exports.Button = Button;
-},{"./base-element":"js/UI/base-element.js"}],"assets/drone.jpg":[function(require,module,exports) {
+exports.NavBar = NavBar;
+},{"./base-element":"js/UI/base-element.js"}],"js/framework/application-base.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ApplicationBase = void 0;
+
+var _navBar = require("../UI/navBar.js");
+
+class ApplicationBase {
+  constructor(title) {
+    this.title = title;
+    this.navBar = new _navBar.NavBar(this.title);
+    this.routeMap = {};
+    this.defaultRoute = null;
+  }
+
+  show(element) {
+    this.navBar.appendToElement(element);
+    document.querySelectorAll('.mdl-navigation__link').forEach(link => {
+      link.addEventListener('click', event => {
+        let route = event.target.innerHTML;
+        this.activateRoute(route);
+      });
+    });
+
+    if (this.defaultRoute) {
+      this.activateRoute(this.defaultRoute);
+    }
+  }
+
+  activateRoute(route) {
+    let content = document.querySelector('.page-content');
+    content.innerHTML = '';
+    this.routeMap[route].appendToElement(content);
+  }
+
+  addRoute(id, pageObject, defaultRoute = false) {
+    this.navBar.addLinks(id, '');
+    this.routeMap[id] = pageObject;
+
+    if (defaultRoute) {
+      this.defaultRoute = id;
+    }
+  }
+
+}
+
+exports.ApplicationBase = ApplicationBase;
+},{"../UI/navBar.js":"js/UI/navBar.js"}],"js/ui/base-element.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.BaseElement = void 0;
+
+class BaseElement {
+  contructor() {
+    this.element = null;
+  }
+
+  appendToElement(el) {
+    this.createElement();
+    $(el).append(this.element);
+  }
+
+  createElement() {
+    let str = this.getElementString();
+    this.element = $(str);
+  }
+
+  getElementString() {
+    throw 'Please override getElementString() in BaseElement';
+  }
+
+}
+
+exports.BaseElement = BaseElement;
+},{}],"assets/drone.jpg":[function(require,module,exports) {
 module.exports = "/drone.bf01fc61.jpg";
 },{}],"assets/car.png":[function(require,module,exports) {
 module.exports = "/car.63095aa0.png";
 },{}],"assets/car2.jpeg":[function(require,module,exports) {
 module.exports = "/car2.e1be9beb.jpeg";
-},{}],"js/UI/images.js":[function(require,module,exports) {
+},{}],"js/ui/images.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -465,7 +572,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var _default = [_drone.default, _car.default, _car2.default];
 exports.default = _default;
-},{"../../assets/drone.jpg":"assets/drone.jpg","../../assets/car.png":"assets/car.png","../../assets/car2.jpeg":"assets/car2.jpeg"}],"js/UI/image.js":[function(require,module,exports) {
+},{"../../assets/drone.jpg":"assets/drone.jpg","../../assets/car.png":"assets/car.png","../../assets/car2.jpeg":"assets/car2.jpeg"}],"js/ui/image.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -501,66 +608,102 @@ class Image extends _baseElement.BaseElement {
 }
 
 exports.Image = Image;
-},{"./base-element":"js/UI/base-element.js","./images":"js/UI/images.js"}],"js/UI/navBar.js":[function(require,module,exports) {
+},{"./base-element":"js/ui/base-element.js","./images":"js/ui/images.js"}],"js/ui/button.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NavBar = void 0;
+exports.Button = void 0;
 
 var _baseElement = require("./base-element");
 
-class NavBar extends _baseElement.BaseElement {
+class Button extends _baseElement.BaseElement {
   constructor(title) {
     super();
     this.title = title;
-    this.links = [];
-  }
-
-  addLinks(href, title) {
-    this.links.push({
-      title,
-      href
-    });
+    this.styleString = '';
   }
 
   getElementString() {
-    const links = this.links.map(link => {
-      return `<a class="mdl-navigation__link" href="${link.href}">${link.title}</a>`;
-    });
-    console.log([...links]);
     return `
-            <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-                <header class="mdl-layout__header">
-                    <div class="mdl-layout__header-row">
-                    <!-- Title -->
-                    <span class="mdl-layout-title">${this.title}</span>
-                    <!-- Add spacer, to align navigation to the right -->
-                    <div class="mdl-layout-spacer"></div>
-                    <!-- Navigation. We hide it in small screens. -->
-                    <nav class="mdl-navigation mdl-layout--large-screen-only">
-                        ${links.join(' ')}
-                    </nav>
-                    </div>
-                </header>
-                <div class="mdl-layout__drawer">
-                    <span class="mdl-layout-title">${this.title}</span>
-                    <nav class="mdl-navigation">
-                    ${[...links]}
-                    </nav>
-                </div>
-                <main class="mdl-layout__content">
-                    <div class="page-content"><!-- Your content goes here --></div>
-                </main>
-            </div>
-      `;
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" style="${this.styleString}">
+        ${this.title}
+      </button>`;
+  }
+
+  setStyleString(style) {
+    this.styleString = style;
   }
 
 }
 
-exports.NavBar = NavBar;
-},{"./base-element":"js/UI/base-element.js"}],"js/UI/table.js":[function(require,module,exports) {
+exports.Button = Button;
+},{"./base-element":"js/ui/base-element.js"}],"js/framework/page.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Page = void 0;
+
+var _baseElement = require("../ui/base-element.js");
+
+class Page extends _baseElement.BaseElement {
+  constructor(pageTitle) {
+    super();
+    this.pageTitle = pageTitle;
+  }
+
+}
+
+exports.Page = Page;
+},{"../ui/base-element.js":"js/ui/base-element.js"}],"js/home-page.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.HomePage = void 0;
+
+var _baseElement = require("./ui/base-element");
+
+var _image = require("./ui/image");
+
+var _button = require("./ui/button");
+
+var _app = require("./app");
+
+var _page = require("./framework/page");
+
+class HomePage extends _page.Page {
+  constructor() {
+    super('Home');
+  }
+
+  createElement() {
+    super.createElement();
+    const image = new _image.Image('drone.jpg', 'drone');
+    image.appendToElement(this.element);
+    let button = new _button.Button('Self driving cars');
+    const styleString = 'width: 300px; height: 80px, font-size: 30px';
+    button.setStyleString(styleString);
+    button.appendToElement(this.element);
+    button.element.click(() => _app.application.activateRoute('Cars'));
+    button = new _button.Button('Drones');
+    button.setStyleString(styleString);
+    button.appendToElement(this.element);
+    button.element.click(() => _app.application.activateRoute('Drones'));
+  }
+
+  getElementString() {
+    return `<div style="text-align: center;"></div>`;
+  }
+
+}
+
+exports.HomePage = HomePage;
+},{"./ui/base-element":"js/ui/base-element.js","./ui/image":"js/ui/image.js","./ui/button":"js/ui/button.js","./app":"js/app.js","./framework/page":"js/framework/page.js"}],"js/ui/table.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -623,7 +766,76 @@ class Table extends _baseElement.BaseElement {
 }
 
 exports.Table = Table;
-},{"./base-element":"js/UI/base-element.js"}],"js/UI/map.js":[function(require,module,exports) {
+},{"./base-element":"js/ui/base-element.js"}],"js/cars-page.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.CarsPage = void 0;
+
+var _baseElement = require("./ui/base-element");
+
+var _table = require("./ui/table");
+
+var _page = require("./framework/page");
+
+var _app = require("./app");
+
+class CarsPage extends _page.Page {
+  constructor(data) {
+    super('cars');
+    this.cars = data;
+    console.log(this.cars);
+  }
+
+  createElement() {
+    super.createElement();
+    const table = new _table.Table('Cars table', this.cars);
+    table.appendToElement(this.element);
+  }
+
+  getElementString() {
+    return `<div style="margin: 20px;"><h3>Cars</h3></div>`;
+  }
+
+}
+
+exports.CarsPage = CarsPage;
+},{"./ui/base-element":"js/ui/base-element.js","./ui/table":"js/ui/table.js","./framework/page":"js/framework/page.js","./app":"js/app.js"}],"js/drone-page.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DronePage = void 0;
+
+var _table = require("./ui/table");
+
+var _page = require("./framework/page");
+
+var _app = require("./app");
+
+class DronePage extends _page.Page {
+  constructor(data) {
+    super('drones');
+    this.drones = data;
+  }
+
+  createElement() {
+    super.createElement();
+    const table = new _table.Table('Drones table', this.drones);
+    table.appendToElement(this.element);
+  }
+
+  getElementString() {
+    return `<div style="margin: 20px;"><h3>Drones</h3></div>`;
+  }
+
+}
+
+exports.DronePage = DronePage;
+},{"./ui/table":"js/ui/table.js","./framework/page":"js/framework/page.js","./app":"js/app.js"}],"js/ui/map.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -646,6 +858,7 @@ class Map extends _baseElement.BaseElement {
   }
 
   createMap() {
+    console.log('create map in map');
     const map = new google.maps.Map(document.getElementById('map'), {
       center: this.centerOfMap,
       zoom: 15
@@ -671,119 +884,171 @@ class Map extends _baseElement.BaseElement {
 }
 
 exports.Map = Map;
-},{"./base-element":"js/UI/base-element.js"}],"js/app.js":[function(require,module,exports) {
+},{"./base-element":"js/ui/base-element.js"}],"js/map-page.js":[function(require,module,exports) {
 "use strict";
 
-var _car = require("./classes/car.js");
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MapPage = void 0;
 
-var _drone = require("./classes/drone.js");
+var _baseElement = require("./ui/base-element");
+
+var _map = require("./ui/map");
+
+var _page = require("./framework/page");
+
+var _app = require("./app");
+
+class MapPage extends _page.Page {
+  constructor() {
+    super('map');
+  }
+
+  createElement() {
+    super.createElement();
+    console.log('create map'); // google.maps.event.addDomListener(window, 'load', () => {
+    //     console.log('maaaaap')
+    // });
+
+    const center = {
+      lat: 40.779999,
+      lng: -73.965883
+    };
+    const map = new _map.Map(center, _app.application.dataService.cars);
+    console.log(map);
+    map.appendToElement(this.element);
+  }
+
+  getElementString() {
+    return `<div style="margin: 20px;"><h3>Map</h3></div>`;
+  }
+
+}
+
+exports.MapPage = MapPage;
+},{"./ui/base-element":"js/ui/base-element.js","./ui/map":"js/ui/map.js","./framework/page":"js/framework/page.js","./app":"js/app.js"}],"js/app.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.application = exports.App = void 0;
 
 var _fleetData = require("./fleet-data.js");
 
 var _fleetDataService = require("./services/fleet-data-service.js");
 
-var _button = require("./UI/button.js");
+var _applicationBase = require("./framework/application-base.js");
 
-var _image = require("./UI/image.js");
+var _homePage = require("./home-page.js");
 
-var _navBar = require("./UI/navBar.js");
+var _carsPage = require("./cars-page.js");
 
-var _table = require("./UI/table.js");
+var _dronePage = require("./drone-page.js");
 
-var _map = require("./UI/map.js");
+var _mapPage = require("./map-page.js");
 
-let car = new _car.Car();
-let drone = new _drone.Drone();
-let dataService = new _fleetDataService.FleetDataService();
-(0, _fleetData.getData)().then(data => dataService.loadData(data)).then(() => vehiclesData());
-const bar = new _navBar.NavBar('Cars & Drones');
-bar.addLinks('www.google.com', 'google');
-bar.addLinks('www.wp.pl', 'wp site');
-bar.appendToElement('body');
-const button = new _button.Button('click me');
-button.appendToElement('.page-content');
-const image = new _image.Image('drone.jpg', '');
-image.appendToElement('.page-content');
-
-function createTable(data, title) {
-  const table = new _table.Table(title, data); // table.insertData(data);
-
-  table.appendToElement('.page-content');
-}
-
-function initMap() {
-  // var uluru = {lat: -25.344, lng: 131.036};
-  // var map = new google.maps.Map(
-  //     document.getElementById('map'), {zoom: 4, center: uluru});
-  // var marker = new google.maps.Marker({position: uluru, map: map});
-  const center = {
-    lat: 40.779999,
-    lng: -73.965883
-  };
-  const map = new _map.Map(center, dataService.cars);
-  map.appendToElement('.page-content');
-}
-
-function vehiclesData() {
-  const myCar = dataService.getVehicleByProp('cars', 'license', "AT2000");
-  console.log(myCar);
-  console.log(dataService.getVehicleByProp('drones', 'base', 'New York')); // insertCars(dataService.cars);
-  // const input = document.querySelector('input');
-  // input.addEventListener('keyup', (event) => {
-  //    filterItems(event);
-  // });
-  // const sortButton = document.querySelector('.sort');
-  // sortButton.addEventListener('click', sortVehicles)
-
-  createTable(dataService.cars, 'Cars table');
-  createTable(dataService.drones, 'Drones table'); //    const map = new Map({lat: -34.397, lng: 150.644}, dataService.cars);
-
-  google.maps.event.addDomListener(window, 'load', initMap);
-}
-
-;
-
-function sortVehicles() {
-  let sortedVehicles = dataService.sortVehicles('cars', 'model');
-  insertCars(sortedVehicles);
-}
-
-function filterItems(event) {
-  let value = event.currentTarget.value;
-  console.log(value);
-  let res = dataService.filterVehicles('cars', value);
-  console.log(res);
-  insertCars(res); // const items = document.querySelectorAll('li');
-  // items.forEach(item => {
-  //     if (item.textContent.toLowerCase().includes(value)) {
-  //         item.style.display = ""
-  //     } else {
-  //         item.style.display = 'none';
-  //     }
-  // })
-}
-
-function insertCars(cars) {
-  let list;
-
-  if (!document.querySelector('ul.car-list')) {
-    list = document.createElement('ul');
-    list.classList.add('car-list');
-    document.querySelector('.container').appendChild(list);
-  } else {
-    list = document.querySelector('ul.car-list');
+class App extends _applicationBase.ApplicationBase {
+  constructor() {
+    super('Fleet Manager');
+    this.dataService = new _fleetDataService.FleetDataService();
+    this.loadData();
+    this.addRoute('Home', new _homePage.HomePage(), true);
+    this.addRoute('Cars', new _carsPage.CarsPage(this.dataService.cars));
+    this.addRoute('Drones', new _dronePage.DronePage(this.dataService.drones));
+    this.addRoute('Map', new _mapPage.MapPage());
   }
 
-  list.innerHTML = '';
-  cars.forEach(car => {
-    const li = document.createElement('li');
-    li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
-    list.appendChild(li);
-  });
+  loadData() {
+    (0, _fleetData.getData)().then(data => {
+      this.dataService.loadVehiclesData(data);
+    });
+  }
+
 }
 
-;
-},{"./classes/car.js":"js/classes/car.js","./classes/drone.js":"js/classes/drone.js","./fleet-data.js":"js/fleet-data.js","./services/fleet-data-service.js":"js/services/fleet-data-service.js","./UI/button.js":"js/UI/button.js","./UI/image.js":"js/UI/image.js","./UI/navBar.js":"js/UI/navBar.js","./UI/table.js":"js/UI/table.js","./UI/map.js":"js/UI/map.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+exports.App = App;
+const application = new App();
+exports.application = application;
+application.show('body'); // let car = new Car();
+// let drone = new Drone();
+// let dataService = new FleetDataService();
+// getData().then(data => dataService.loadData(data)).then(() => vehiclesData());
+// const bar = new NavBar('Cars & Drones');
+// bar.addLinks('www.google.com', 'google');
+// bar.addLinks('www.wp.pl', 'wp site');
+// bar.appendToElement('body');
+// const button = new Button('click me');
+// button.appendToElement('.page-content');
+// const image = new Image('drone.jpg','');
+// image.appendToElement('.page-content');
+// function createTable(data, title) {
+//     const table = new Table(title, data);
+//     // table.insertData(data);
+//     table.appendToElement('.page-content');
+// }
+// function initMap() {
+//     // var uluru = {lat: -25.344, lng: 131.036};
+//     // var map = new google.maps.Map(
+//     //     document.getElementById('map'), {zoom: 4, center: uluru});
+//     // var marker = new google.maps.Marker({position: uluru, map: map});
+//     const center = {lat: 40.779999, lng: -73.965883};
+//     const map = new Map(center, dataService.cars);
+//     map.appendToElement('.page-content');
+//   }
+// function vehiclesData() {
+//     const myCar = dataService.getVehicleByProp('cars','license', "AT2000");
+//     console.log(myCar);
+//     console.log(dataService.getVehicleByProp('drones','base', 'New York'));
+//     // insertCars(dataService.cars);
+//     // const input = document.querySelector('input');
+//     // input.addEventListener('keyup', (event) => {
+//     //    filterItems(event);
+//     // });
+//     // const sortButton = document.querySelector('.sort');
+//     // sortButton.addEventListener('click', sortVehicles)
+//    createTable(dataService.cars, 'Cars table');
+//    createTable(dataService.drones, 'Drones table');
+// //    const map = new Map({lat: -34.397, lng: 150.644}, dataService.cars);
+//     google.maps.event.addDomListener(window, 'load', initMap);
+// };
+// function sortVehicles() {
+//     let sortedVehicles = dataService.sortVehicles('cars', 'model');
+//     insertCars(sortedVehicles)
+// }
+// function filterItems(event) {
+//     let value = event.currentTarget.value;
+//     console.log(value);
+//     let res = dataService.filterVehicles('cars', value);
+//     console.log(res);
+//     insertCars(res);
+//     // const items = document.querySelectorAll('li');
+//     // items.forEach(item => {
+//     //     if (item.textContent.toLowerCase().includes(value)) {
+//     //         item.style.display = ""
+//     //     } else {
+//     //         item.style.display = 'none';
+//     //     }
+//     // })
+// }
+// function insertCars(cars) {
+//     let list;
+//     if(!document.querySelector('ul.car-list')) {
+//     list = document.createElement('ul');
+//     list.classList.add('car-list');
+//     document.querySelector('.container').appendChild(list);
+//     } else {
+//         list = document.querySelector('ul.car-list');
+//     }
+//     list.innerHTML = '';
+//     cars.forEach(car => {
+//         const li = document.createElement('li');
+//         li.textContent = `Make: ${car.make}, model: ${car.model}, license: ${car.license}`;
+//         list.appendChild(li);
+//     })
+// };
+},{"./fleet-data.js":"js/fleet-data.js","./services/fleet-data-service.js":"js/services/fleet-data-service.js","./framework/application-base.js":"js/framework/application-base.js","./home-page.js":"js/home-page.js","./cars-page.js":"js/cars-page.js","./drone-page.js":"js/drone-page.js","./map-page.js":"js/map-page.js"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -810,7 +1075,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60405" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65103" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

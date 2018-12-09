@@ -7,7 +7,7 @@ export class NavBar extends BaseElement {
         this.links = [];
     }
 
-    addLinks(href, title) {
+    addLinks(title, href) {
         this.links.push({
             title,
             href
@@ -16,7 +16,7 @@ export class NavBar extends BaseElement {
 
     getElementString() {
         const links = this.links.map(link => {
-            return `<a class="mdl-navigation__link" href="${link.href}">${link.title}</a>`
+            return `<a class="mdl-navigation__link">${link.title}</a>`
         });
         console.log([...links]);
         return `

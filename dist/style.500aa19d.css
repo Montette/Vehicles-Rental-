@@ -16,3 +16,8 @@ input::placeholder {
 #map {
   height: 600px;
 }
+
+.img-drone {
+  max-width: 90%;
+  height: auto;
+}
